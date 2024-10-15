@@ -10,11 +10,11 @@ def load_model(args):
     toker = AutoTokenizer.from_pretrained(
         args.pretrained_model_path, use_fast=False,
         add_bos_token=False, add_eos_token=False,
-        cache_dir='/mnt/nvme/guoqing/',
+        cache_dir=args.cache_dir,
     )
     model = LLM(model=args.pretrained_model_path, 
-                dtype=torch.bfloat16,
-                download_dir='/mnt/nvme/guoqing/',
+                dtype=torch.float16,
+                download_dir=args.cache_dir,
                 # device_map='balance',
                 enforce_eager=True,
                 tensor_parallel_size=torch.cuda.device_count())
@@ -25,11 +25,6 @@ def generate_response(model, tokenizer, prompt, max_new_tokens=128):
         {"role": "system", "content": f"{sys_prompt}"},
         {"role": "user", "content": f"{prompt}"},
     ]
-    # input_ids = tokenizer.apply_chat_template(
-    #     messages,
-    #     add_generation_prompt=True,
-    #     return_tensors="pt"
-    # ).tolist()[0]
 
     sampling_params = SamplingParams(
         temperature=0.0,
@@ -40,16 +35,18 @@ def generate_response(model, tokenizer, prompt, max_new_tokens=128):
     response = outputs[0].outputs[0].text
     return response
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pretrained_model_path", type=str, default='Qwen/Qwen2-7B-Instruct')
+    parser.add_argument("--pretrained_model_path", type=str, default='meta-llama/Meta-Llama-3-70B-Instruct')
     parser.add_argument("--level", type=str, default='easy')
-    parser.add_argument("--dataset", type=str, default='aqua')
-    parser.add_argument("--cat", type=str, default='math')
+    parser.add_argument("--dataset", type=str, default='lama')
+    parser.add_argument("--cat", type=str, default='factuality')
     parser.add_argument("--max_turns", type=int, default=1)
     parser.add_argument("--max_new_tokens", type=int, default=512)
     parser.add_argument("-s","--start_idx", type=int, default=0, help="Starting index of the chunk to process")
     parser.add_argument("-e","--end_idx", type=int, default=None, help="Ending index of the chunk to process")
+    parser.add_argument("--cache_dir", type=str, default='/home/gluo/')
 
     args = parser.parse_args()
 
