@@ -6,12 +6,14 @@ from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 import torch
 
+from utils.helper import set_seed
+
 def load_model(args):
     toker = AutoTokenizer.from_pretrained(
-        args.pretrained_model_path, use_fast=False,
-        add_bos_token=False, add_eos_token=False,
+        args.pretrained_model_path,
         cache_dir=args.cache_dir,
     )
+
     model = LLM(model=args.pretrained_model_path, 
                 dtype=torch.float16,
                 download_dir=args.cache_dir,
@@ -47,8 +49,11 @@ if __name__ == "__main__":
     parser.add_argument("-s","--start_idx", type=int, default=0, help="Starting index of the chunk to process")
     parser.add_argument("-e","--end_idx", type=int, default=None, help="Ending index of the chunk to process")
     parser.add_argument("--cache_dir", type=str, default='/home/gluo/')
+    parser.add_argument("--seed", type=int, default=0)
 
     args = parser.parse_args()
+
+    set_seed(args.seed)
 
     print('loading model...')
     model, toker = load_model(args)

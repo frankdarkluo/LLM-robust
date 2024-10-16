@@ -1,19 +1,11 @@
 import datasets
 import json
-from matplotlib import pyplot as plt
-from scipy.stats import spearmanr
+# from matplotlib import pyplot as plt
 from tqdm import tqdm
 import torch
 import numpy as np
 import random
 import os
-
-# Initialize the geocoder
-import geonamescache
-gc = geonamescache.GeonamesCache()
-
-# Get all countries
-countries = gc.get_countries()
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -73,32 +65,3 @@ def plot_template_distribution(template_dict):
     # 获取模板名称和对应的数量
     templates = list(template_dict.keys())
     counts = [len(samples) for samples in template_dict.values()]
-    
-    # 创建柱状图
-    plt.figure(figsize=(10, 6))
-    plt.barh(templates, counts, color='skyblue')  # 使用水平柱状图（barh），使模板名称更易读
-
-    # 添加标签和标题
-    plt.xlabel('Number of Samples')
-    plt.ylabel('Templates')
-    plt.title('Distribution of Samples by Template')
-    
-    # 显示数量在每个柱子上
-    for index, value in enumerate(counts):
-        plt.text(value, index, str(value))
-
-    # 显示图表
-    plt.tight_layout()
-    plt.savefig('template_distribution.png')
-    plt.show()
-
-if __name__ == '__main__':
-    # template_list,template_dict=get_lama()
-    # print("Number of templates: ", len(template_list))
-    template_dict=json.load(open('templates.json','r', encoding='utf-8'))
-
-    for template, samples in template_dict.items():
-        print(f"Template: {template} has {len(samples)} samples.")
-
-    plot_template_distribution(template_dict)
-    

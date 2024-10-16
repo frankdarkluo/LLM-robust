@@ -5,13 +5,15 @@ from tqdm import tqdm
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 import torch
+from utils.helper import set_seed
 
 def load_model(args):
     toker = AutoTokenizer.from_pretrained(
         args.pretrained_model_path, use_fast=False,
         add_bos_token=False, add_eos_token=False,
-        cache_dir=args.cache_dir,
+        cache_dir=args.cache_dir
     )
+
     model = LLM(model=args.pretrained_model_path, 
                 dtype=torch.float16,
                 download_dir=args.cache_dir,
@@ -25,6 +27,24 @@ def generate_response(model, tokenizer, prompt, max_new_tokens=128):
         {"role": "system", "content": f"{sys_prompt}"},
         {"role": "user", "content": f"{prompt}"},
     ]
+
+    # input_ids = tokenizer.apply_chat_template(
+    #     messages,
+    #     add_generation_prompt=True,
+    #     return_tensors="pt"
+    #     ).to(model.device)
+    # with torch.no_grad():
+    #         # Generate a response using the model
+    #     outputs = model.generate(
+    #         input_ids,
+    #         max_new_tokens=max_new_tokens,
+    #         temperature=0.0,
+    #         do_sample=False,
+    #         eos_token_id=tokenizer.eos_token_id
+    #     )
+    
+    # response=outputs[0][input_ids.shape[-1]:]
+    # response=tokenizer.decode(response,skip_special_tokens=True)
 
     sampling_params = SamplingParams(
         temperature=0.0,
@@ -41,14 +61,17 @@ if __name__ == "__main__":
     parser.add_argument("--pretrained_model_path", type=str, default='meta-llama/Meta-Llama-3-70B-Instruct')
     parser.add_argument("--level", type=str, default='easy')
     parser.add_argument("--dataset", type=str, default='reclor')
-    parser.add_argument("--cat", type=str, default='factuality')
+    parser.add_argument("--cat", type=str, default='logic')
     parser.add_argument("--max_turns", type=int, default=1)
     parser.add_argument("--max_new_tokens", type=int, default=384)
     parser.add_argument("-s","--start_idx", type=int, default=0, help="Starting index of the chunk to process")
     parser.add_argument("-e","--end_idx", type=int, default=None, help="Ending index of the chunk to process")
     parser.add_argument("--cache_dir", type=str, default='/home/gluo/')
+    parser.add_argument("--seed", type=int, default=0)
 
     args = parser.parse_args()
+
+    set_seed(args.seed)
 
     print('loading model...')
     model, toker = load_model(args)
